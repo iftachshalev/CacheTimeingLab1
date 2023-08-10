@@ -1,0 +1,26 @@
+# Put all sizes in bytes and times in cycles
+
+Cache Line Size:
+L1: 64
+L2: 64
+L3: 64
+
+Total Size:
+L1: 262144
+L2: 2097152
+L3: 16777216
+
+Number of Ways:
+L1: 8
+L2: 8
+L3: 16
+
+Number of Sets:
+L1: 512
+L2: 4096
+L3: 16384
+
+Latency:
+L1: 4
+L2: 12
+L3: 36
