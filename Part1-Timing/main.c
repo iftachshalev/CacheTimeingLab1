@@ -47,8 +47,8 @@ int main (int ac, char **av) {
 
     // L2 ====
     for (int i = 0; i < SAMPLES; i++) {
-        evict_from_Lx(eviction_buffer, L1_SIZE, 4);
-        sleep_();
+        evict_from_Lx(eviction_buffer, L1_SIZE, 2);
+        // sleep_();
         l2_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     }
 
@@ -60,7 +60,7 @@ int main (int ac, char **av) {
 
     // DRAM ====
     for (int i=0; i<SAMPLES; i++){
-        evict_from_Lx(eviction_buffer3, L3_SIZE, 4);
+        evict_from_Lx(eviction_buffer3, L3_SIZE, 12);
         dram_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     };
 
@@ -102,10 +102,10 @@ void evict_from_Lx(volatile uint64_t *eviction_buffer, size_t size, int times) {
         }
     }
     
-    // for some reson if thers no print here l3 doesnt seem logical and if thers a print for all evictions the Dram measurement looks like l3
-    // if (size = L2_SIZE) {
-    //     printf("-");
-    // }
+    // the print below is a necessary sys call for some resone
+    if (size <= L2_SIZE) {
+        printf("-");
+    }
 }
 
 void fill_buffer(volatile  uint64_t *eviction_buffer, size_t size) {
@@ -116,7 +116,7 @@ void fill_buffer(volatile  uint64_t *eviction_buffer, size_t size) {
 
 
 void sleep_() {
-    long int n = 1000000000;
+    long int n = 180000000;
     int sum = 0;
     
     clock_t start_time = clock(); // Get the current time before the calculation
