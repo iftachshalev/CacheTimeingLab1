@@ -60,7 +60,7 @@ int main (int ac, char **av) {
 
     // DRAM ====
     for (int i=0; i<SAMPLES; i++){
-        evict_from_Lx(eviction_buffer3, L3_SIZE, 12);
+        // evict_from_Lx(eviction_buffer3, L3_SIZE, 12); // might be a comment to save run time
         dram_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     };
 
