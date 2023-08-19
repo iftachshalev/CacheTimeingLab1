@@ -48,13 +48,14 @@ int main (int ac, char **av) {
     // L2 ====
     for (int i = 0; i < SAMPLES; i++) {
         evict_from_Lx(eviction_buffer, L1_SIZE, 2);
-        // sleep_();
+        // sleep_();   
         l2_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     }
 
     // L3 ====
     for (int i = 0; i < SAMPLES; i++) {
         evict_from_Lx(eviction_buffer2, L2_SIZE, 4);
+        sleep_();
         l3_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     }
 
@@ -116,13 +117,14 @@ void fill_buffer(volatile  uint64_t *eviction_buffer, size_t size) {
 
 
 void sleep_() {
-    long int n = 180000000;
+    long long int n = 1000000000;
     int sum = 0;
     
     clock_t start_time = clock(); // Get the current time before the calculation
     
     for (int i = 1; i <= n; i++) {
-        sum += i;
+        sum *= i;
+        sum /= i;
     }
     
     clock_t end_time = clock(); // Get the current time after the calculation
