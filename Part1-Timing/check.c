@@ -6,6 +6,7 @@
 
 // #define TARGET_SIZE 2097000
 #define TARGET_SIZE 8
+#define TARGET_NUM 8
 #define L1_SIZE 256 * 1024 * 1.5
 #define L2_SIZE 2 * 1024 * 1024 * 1.5
 #define L3_SIZE 16 * 1024 * 1024 * 1.25
@@ -28,13 +29,19 @@ int main (int ac, char **av) {
 
     volatile char tmp;
     srand(time(NULL));
+    volatile uint64_t **target_buffer;
 
-    volatile uint64_t *target_buffer = (volatile uint64_t *)malloc(TARGET_SIZE * sizeof(uint64_t));
+    target_buffer = (volatile uint64_t **)malloc(TARGET_SIZE * sizeof(volatile uint64_t *));
+
+    for (int i = 0; i < TARGET_NUM; i++) {
+        target_buffer[i] = (volatile uint64_t *)malloc(TARGET_SIZE * sizeof(uint64_t));
+        fill_buffer(target_buffer[i], TARGET_SIZE);
+    }
+
     volatile uint64_t *eviction_buffer = (volatile uint64_t *)malloc(L1_SIZE * sizeof(uint64_t));
     volatile uint64_t *eviction_buffer2 = (volatile uint64_t *)malloc(L2_SIZE * sizeof(uint64_t));
     volatile uint64_t *eviction_buffer3 = (volatile uint64_t *)malloc(L3_SIZE * sizeof(uint64_t));
 
-    fill_buffer(target_buffer, TARGET_SIZE);
     fill_buffer(eviction_buffer, L1_SIZE);
     fill_buffer(eviction_buffer2, L2_SIZE);
     fill_buffer(eviction_buffer3, L3_SIZE);
@@ -44,34 +51,36 @@ int main (int ac, char **av) {
         // for (int j = TARGET_SIZE - 1; j >= 0; j--) {
         //     tmp = target_buffer[j];
         // }
-        tmp = target_buffer[0];
+        tmp = target_buffer[0][0];
         
-        l1_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
+        l1_latency[i] = measure_one_block_access_time((uint64_t)target_buffer[0]);
     }
 
     // L2 ====
     for (int i = 0; i < SAMPLES; i++) {
         evict_from_Lx(eviction_buffer, L1_SIZE, 2);
         // sleep_();   
-        l2_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
+        l2_latency[i] = measure_one_block_access_time((uint64_t)target_buffer[0]);
     }
 
     // L3 ====
     for (int i = 0; i < SAMPLES; i++) {
         evict_from_Lx(eviction_buffer2, L2_SIZE, 4);
         // sleep_();
-        l3_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
+        l3_latency[i] = measure_one_block_access_time((uint64_t)target_buffer[0]);
     }
 
     // DRAM ====
     for (int i=0; i<SAMPLES; i++){
-        // evict_from_Lx(eviction_buffer3, L3_SIZE, 12); // might be a comment to save run time
-        dram_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
+        evict_from_Lx(eviction_buffer3, L3_SIZE, 12); // might be a comment to save run time
+        dram_latency[i] = measure_one_block_access_time((uint64_t)target_buffer[0]);
     };
 
     print_results(dram_latency, l1_latency, l2_latency, l3_latency);
 
-    free((uint64_t *)target_buffer);
+    for (int i = 0; i < TARGET_NUM; i++) {
+        free((void *)target_buffer[i]);
+    }
     free((uint64_t *)eviction_buffer);
     free((uint64_t *)eviction_buffer2);
     free((uint64_t *)eviction_buffer3);
