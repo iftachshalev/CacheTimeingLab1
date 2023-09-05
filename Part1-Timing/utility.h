@@ -9,7 +9,7 @@
 #ifndef __UTILITY_H__
 #define __UTILITY_H__
 
-#define SAMPLES 10
+#define SAMPLES 100
 
 
 // Function to read the time stamp counter, which is called tsc for short
@@ -80,7 +80,7 @@ static inline uint64_t one_block_access(uint64_t addr)
 // The instruction evict the given address from the cache to DRAM
 // so that the next time the line is accessed, it will be fetched from DRAM
 // Details in https://www.felixcloutier.com/x86/clflush
-static inline void clflush(void *v) {
+static inline void clflush(volatile void *v) {
     asm volatile ("clflush 0(%0)": : "r" (v):);
 }
 

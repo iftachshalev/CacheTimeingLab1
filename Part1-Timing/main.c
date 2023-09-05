@@ -4,20 +4,14 @@
 #include <time.h>
 #include <immintrin.h>
 
-// #define TARGET_SIZE 2097000
-#define TARGET_SIZE 116000
+#define TARGET_SIZE 8
 #define L1_SIZE 256 * 1024 * 1.5
 #define L2_SIZE 2 * 1024 * 1024 * 1.5
 #define L3_SIZE 16 * 1024 * 1024 * 1.25
-#define CACHE_LINE_SIZE 64
-
-// compile with: gcc -O0 main.c -o main
-// run on core 2+
 
 void evict_from_Lx(volatile  uint64_t *eviction_buffer, size_t size, int times);
 void fill_buffer(volatile uint64_t *eviction_buffer, size_t size);
 void sleep_();
-// void flush_cache(volatile void* buffer);
  
 int main (int ac, char **av) {
 
@@ -29,7 +23,7 @@ int main (int ac, char **av) {
     volatile char tmp;
     srand(time(NULL));
 
-    volatile uint64_t *target_buffer = (volatile uint64_t *)malloc(TARGET_SIZE * sizeof(uint64_t));
+    volatile uint64_t *target_buffer = (volatile uint64_t *)malloc(TARGET_SIZE * sizeof(uint64_t)); // exactly cache line size (64)
     volatile uint64_t *eviction_buffer = (volatile uint64_t *)malloc(L1_SIZE * sizeof(uint64_t));
     volatile uint64_t *eviction_buffer2 = (volatile uint64_t *)malloc(L2_SIZE * sizeof(uint64_t));
     volatile uint64_t *eviction_buffer3 = (volatile uint64_t *)malloc(L3_SIZE * sizeof(uint64_t));
@@ -41,26 +35,19 @@ int main (int ac, char **av) {
 
     // L1 ====
     for (int i=0; i<SAMPLES; i++){
-        // for (int j = TARGET_SIZE - 1; j >= 0; j--) {
-        //     tmp = target_buffer[j];
-        // }
         tmp = target_buffer[0];
-        
         l1_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     }
 
     // L2 ====
     for (int i = 0; i < SAMPLES; i++) {
-        evict_from_Lx(eviction_buffer, L1_SIZE, 2);
-        // sleep_();
+        evict_from_Lx(eviction_buffer, L1_SIZE, 4);
+        // sleep_(); // doesnt work yet
         l2_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     }
 
     // L3 ====
     for (int i = 0; i < SAMPLES; i++) {
-        // for (int j = 0; j < TARGET_SIZE; j++) {
-        //     tmp = target_buffer[j];
-        // }
         evict_from_Lx(eviction_buffer2, L2_SIZE, 4);
         // sleep_();
         l3_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
@@ -68,7 +55,7 @@ int main (int ac, char **av) {
 
     // DRAM ====
     for (int i=0; i<SAMPLES; i++){
-        // evict_from_Lx(eviction_buffer3, L3_SIZE, 12); // might be a comment to save run time
+        evict_from_Lx(eviction_buffer3, L3_SIZE, 12); // you might want to comment to save run time
         dram_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     };
 
@@ -111,9 +98,9 @@ void evict_from_Lx(volatile uint64_t *eviction_buffer, size_t size, int times) {
     }
     
     // the print below is a necessary sys call for some resone
-    if (size <= L2_SIZE) {
-        printf("-");
-    }
+    // if (size = L2_SIZE) {
+    //     printf("-");
+    // }
 }
 
 void fill_buffer(volatile  uint64_t *eviction_buffer, size_t size) {
@@ -124,7 +111,7 @@ void fill_buffer(volatile  uint64_t *eviction_buffer, size_t size) {
 
 
 void sleep_() {
-    long long int n = 10000000;
+    long long int n = 1000000;
     int sum = 0;
     
     clock_t start_time = clock(); // Get the current time before the calculation
@@ -139,10 +126,3 @@ void sleep_() {
     
     printf("Elapsed time: %f seconds\n", elapsed_time);
 }
-
-// void flush_cache(volatile void* buffer) {
-//     char* ptr = (char*)buffer;
-//     for (size_t i = 0; i < TARGET_SIZE; i += CACHE_LINE_SIZE) {
-//         _mm_clflush(&ptr[i]);
-//     }
-// }

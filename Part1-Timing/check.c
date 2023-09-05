@@ -66,7 +66,7 @@ int main (int ac, char **av) {
     // L3 ====
     for (int i = 0; i < SAMPLES; i++) {
         evict_from_Lx(eviction_buffer2, L2_SIZE, 4);
-        sleep_();
+        // sleep_();
         l3_latency[i] = measure_one_block_access_time((uint64_t)target_buffer[0]);
     }
 
