@@ -1,53 +1,91 @@
+#include "utility.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <immintrin.h>
+#include <unistd.h>
 
-#include"util.h"
-#include <string.h>
-#include<windows.h>
-// TODO: define your own buffer size
-#define BUFF_SIZE (1<<21)
-#define L1_SIZE 47652 // times 1.5
-#define L2_SIZE 400000 // times 1.5
+#define TARGET_SIZE 8
+#define L1_SIZE 256 * 1024 * 4.5
 
+// compile with: gcc -O0 main.c -o main
+// run on core 2+
 
-void encoderSB(char *bit);
-void evict_to_Lx(uint64_t *eviction_buffer, size_t size);
+void evict_from_Lx(volatile  uint64_t *eviction_buffer, size_t size, int times);
+void fill_buffer(volatile uint64_t *eviction_buffer, size_t size);
+int getInputAfterDelay();
+ 
+int main (int ac, char **av) {
 
+    int bit = getInputAfterDelay();
+    printf("sending bit...\n");
 
-int main(int argc, char **argv)
-{
+    int sec = 2;
 
-  printf("Please type a message.\n");
-  char text_buf[128];
-  fgets(text_buf, sizeof(text_buf), stdin);
-  char *bin_inp = string_to_binary(text_buf);
-  printf("%s\n", bin_inp);
-  bin_inp = "1";
-  encoderSB(bin_inp);
+    if (bit == 1) {
+        volatile char tmp;
+        srand(time(NULL));
 
-  printf("Sender finished.\n");
-  return 0;
+        volatile uint64_t *target_buffer = (volatile uint64_t *)malloc(TARGET_SIZE * sizeof(uint64_t));
+        volatile uint64_t *eviction_buffer = (volatile uint64_t *)malloc(L1_SIZE * sizeof(uint64_t));
+
+        fill_buffer(target_buffer, TARGET_SIZE);
+        fill_buffer(eviction_buffer, L1_SIZE);
+
+        tmp = target_buffer[0];
+
+        for (int i=0; i<SAMPLES*sec; i++){
+            evict_from_Lx(eviction_buffer, L1_SIZE, 6);
+            // printf("%ld\n", measure_one_block_access_time((uint64_t)target_buffer));
+        };
+        
+        free((uint64_t *)eviction_buffer);
+        free((uint64_t *)target_buffer);
+    }
+    else {
+        sleep(sec);
+    }
+
+    printf("the bit has been sent!\n");
+
+    return 0;
 }
 
-
-void encoderSB(char *bit) {
-
-  volatile char tmp;
-  printf("encoding for: %s\n", bit);
-
-  if (strcmp(bit, "1") == 0) {
-    uint64_t *target_buffer = (uint64_t *)malloc(L2_SIZE * sizeof(uint64_t));
-    tmp = target_buffer[0];
-    // printf("%d\n", measure_one_block_access_time((uint64_t)target_buffer));
-    free(target_buffer);
-  } else {
-    printf("the bit is 0");
-  }
-
-}
-
-
-void evict_to_Lx(uint64_t *eviction_buffer, size_t size) {
-    for (size_t i = 0; i < size; i++) {
-        uint64_t value = eviction_buffer[i];
+// LINEAR 
+void evict_from_Lx(volatile uint64_t *eviction_buffer, size_t size, int times) {
+    int useless = 1;
+    for (int j = 0; j < times; j++) {
+        for (size_t i = 0; i < size; i++) {
+            uint64_t value = eviction_buffer[i];
+            useless += value;
+        }
     }
 }
 
+void fill_buffer(volatile  uint64_t *eviction_buffer, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        eviction_buffer[i] = rand() % 10;
+    }
+}
+
+
+int getInputAfterDelay() {
+    // Get the start time
+    time_t startTime = time(NULL);
+
+    // Collect an integer input from the user
+    int userInput;
+    printf("Enter an integer: ");
+    scanf("%d", &userInput);
+
+    // Calculate the end time by adding 5 seconds to the start time
+    time_t endTime = startTime + 5;
+
+    // Wait until the end time is reached
+    while (time(NULL) < endTime) {
+        // Waiting...
+    }
+
+    // Return the user input
+    return userInput;
+}

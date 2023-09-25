@@ -35,7 +35,7 @@ int main (int ac, char **av) {
 
     for (int i=0; i<SAMPLES*11111111; i++){
         evict_from_Lx(eviction_buffer, L1_SIZE, 2);
-        printf("%ld", measure_one_block_access_time((uint64_t)target_buffer));
+        printf("%ld\n", measure_one_block_access_time((uint64_t)target_buffer));
     };
     
     free((uint64_t *)eviction_buffer);
@@ -52,11 +52,6 @@ void evict_from_Lx(volatile uint64_t *eviction_buffer, size_t size, int times) {
             uint64_t value = eviction_buffer[i];
             useless += value;
         }
-    }
-    
-    // for some reson if thers no print here l3 doesnt seem logical and if thers a print for all evictions the Dram measurement looks like l3
-    if (size <= L2_SIZE) {
-        printf("-");
     }
 }
 

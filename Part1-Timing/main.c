@@ -36,7 +36,7 @@ int main (int ac, char **av) {
     // L1 ====
     for (int i=0; i<SAMPLES; i++){
         tmp = target_buffer[0];
-        // sleep_();
+        sleep_();
         l1_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     }
 
@@ -56,7 +56,7 @@ int main (int ac, char **av) {
 
     // DRAM ====
     for (int i=0; i<SAMPLES; i++){
-        evict_from_Lx(eviction_buffer3, L3_SIZE, 12); // you might want to comment to save run time
+        // evict_from_Lx(eviction_buffer3, L3_SIZE, 12); // you might want to comment to save run time
         dram_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     };
 
@@ -112,7 +112,7 @@ void fill_buffer(volatile  uint64_t *eviction_buffer, size_t size) {
 
 
 void sleep_() {
-    long long int n = 50000000;
+    long long int n = 10000000;
     int sum = 0;
     
     clock_t start_time = clock(); // Get the current time before the calculation
