@@ -36,10 +36,10 @@ int main (int ac, char **av) {
         l1_latency[i] = measure_one_block_access_time((uint64_t)target_buffer);
     }
 
-    // print_l1_results(l1_latency);
+    print_l1_results(l1_latency);
 
     int bit = 0;
-    if (l1_latency[SAMPLES/2] > 60) {  // has to be change according to SAMPLES
+    if (l1_latency[SAMPLES/2 + 30] > 60) {  // has to be change according to SAMPLES
         bit = 1;
     }
     printf("\nthe bit is: %d\n\n", bit);
