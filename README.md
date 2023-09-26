@@ -1,7 +1,7 @@
 # Prime+probe example
 ### Compile and execute:
-  * compile with: gcc -O0 main.c -o main or use the makefile
-  * run on core 2+ with: taskset -c 4 ./main or use the makefile
+  * compile with: `gcc -O0 prog_name.c -o prog_name` or use the makefile
+  * run on core 2+ with: `taskset -c 4 ./prog_name` or use the makefile
   * for more accurate/better results you might want to applay those changes:
     * disable hyper-threading
     * cancel c-state, sleep
