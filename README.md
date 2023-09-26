@@ -5,5 +5,5 @@
   * for more accurate/better results you might want to applay those changes:
     * disable hyper-threading
     * cancel c-state, sleep
-    * set all CPUs to performance (maximum clock speed)
+    * set all CPUs to performance (maximum clock speed). info [here](https://askubuntu.com/questions/20271/how-do-i-set-the-cpu-frequency-scaling-governor-for-all-cores-at-once)
 ### Cache-timing:
